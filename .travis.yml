@@ -27,6 +27,7 @@ script:
   - cmake -DCMAKE_TOOLCHAIN_FILE=../${DEPS_ARCH}/vcpkg/scripts/buildsystems/vcpkg.cmake ../example
   - make
   - make test
+  - popd
   # rebuilding the artifacts happens after building the example to confirm the example is working
   # as checked in.
   # TODO: Run shellcheck

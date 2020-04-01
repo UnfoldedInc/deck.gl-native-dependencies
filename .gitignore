@@ -1,3 +1,5 @@
+/build
+
 # Directories used when building the dependencies
 /dawn
 /vcpkg

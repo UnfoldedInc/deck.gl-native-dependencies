@@ -1,6 +1,6 @@
 # deck.gl-native Dependencies
 
-This repository contains prebuilt dependencies for [deck.gl-native](https://github.com/UnfoldedInc/deck.gl-native).
+This repository contains prebuilt dependencies for [deck.gl-native](https://github.com/UnfoldedInc/deck.gl-native). Libarries that are not available with Apt (Debian) or Homebrew are included here.
 
 Supported architectures:
 

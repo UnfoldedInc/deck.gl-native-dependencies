@@ -1,0 +1,10 @@
+0002-Fix-z7-override.patch 2531e61b128c13bf4b86d6a1d510577c24e9e309
+CONTROL 71cdca5cc1519b0659c5d880eaf43ebb007bc109
+fix-main-lib-path.patch ad9eb39a8d09b6c0d87e788830bc8df06025a443
+usage b945a4264d616b5064cfc0168e55c4d10f5bdc50
+portfile.cmake d597d64b9b4fbab95d3cda553c300290f40a7495
+cmake 3.14.0
+vcpkg_fixup_cmake_targets dac334f3bf50b8262be92623168023aa565aa729
+post_build_checks 2
+triplet 50a910d76098efa4ec447ca07ea3d462ef5211fd-77a1725add280a33f0c7a3b12acc4170b1bffd7e
+features core

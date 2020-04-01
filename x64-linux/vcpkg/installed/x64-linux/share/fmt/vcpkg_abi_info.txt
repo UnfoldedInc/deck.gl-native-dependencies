@@ -1,0 +1,8 @@
+CONTROL 50a6d260feb1cdc055049be53c083a45f67a9e0c
+fix-warning4189.patch 74955fe1cbfe8b941670eb6dff2eb125e40d678f
+portfile.cmake f9bf576fdb4b157e3706a7ca1e164bcc3a6c964a
+cmake 3.14.0
+vcpkg_fixup_cmake_targets dac334f3bf50b8262be92623168023aa565aa729
+post_build_checks 2
+triplet 50a910d76098efa4ec447ca07ea3d462ef5211fd-77a1725add280a33f0c7a3b12acc4170b1bffd7e
+features core

@@ -1,0 +1,11 @@
+prefix=/home/rocky/Unfolded/code/deck.gl-native-dependencies/vcpkg/packages/fmt_x64-linux
+exec_prefix=/home/rocky/Unfolded/code/deck.gl-native-dependencies/vcpkg/packages/fmt_x64-linux
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: fmt
+Description: A modern formatting library
+Version: 6.1.2
+Libs: -L${libdir} -lfmt
+Cflags: -I${includedir}
+

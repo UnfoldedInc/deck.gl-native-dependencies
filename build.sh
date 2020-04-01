@@ -8,16 +8,19 @@ DEPS_CONFIG="release"
 # such as x64-linux or x64-osx
 DEPS_ARCH="${DEPS_ARCH:-x64-linux}"
 DEPS_ROOT="$(pwd)/$DEPS_ARCH"
-rm -rf "$DEPS_ROOT"
 
+# Dependency revisions to use
 VCPKG_REV=9b44e4768bf25e1ae07e6eaba072c1a1a160f978
 DEPOT_TOOLS_REV=a680c23e78599f7f0b761ada3158387a9e9a05b3
 DAWN_REV=3da19b843ffd63d884f3a67f2da3eea20818499a
 
+# Wipe out existing artifacts and replace with the ones that are now being built
+rm -rf "$DEPS_ROOT"
+
 if [ ! -d vcpkg ] ; then git clone https://github.com/Microsoft/vcpkg.git ; fi
 pushd vcpkg
 git fetch
-# git reset is being done to wipe out the triplet change below.
+# git reset is being done to wipe out the triplet change below, if this is a rerun
 git reset --hard HEAD
 git checkout "$VCPKG_REV"
 # TODO: May repeatedly add this to the triplet file, so using git reset above

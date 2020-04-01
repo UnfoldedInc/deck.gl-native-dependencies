@@ -1,0 +1,36 @@
+language: cpp
+
+os: linux
+dist: bionic
+
+matrix:
+  include:
+    - name: "Mac OSX (Xcode 11.3)"
+      os: osx
+      osx_image: xcode11.3
+      env:
+        DEPS_ARCH=x64-osx
+    - name: "Linux (Clang)"
+      os: linux
+      compiler: clang
+      env:
+        DEPS_ARCH=x64-linux
+    - name: "Linux (GCC)"
+      os: linux
+      compiler: gcc
+      env:
+        DEPS_ARCH=x64-linux
+
+script:
+  - mkdir build
+  - pushd build
+  - cmake -DCMAKE_TOOLCHAIN_FILE=../${DEPS_ARCH}/vcpkg/scripts/buildsystems/vcpkg.cmake ../example
+  - make
+  - make test
+  - popd
+
+  # rebuilding the artifacts happens after building the example to confirm the example is working
+  # with the artifacts as checked in.
+  - shellcheck ./build.sh
+  # This can take a long time.
+  - ./build.sh

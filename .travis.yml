@@ -28,7 +28,9 @@ script:
   - make
   - make test
   - popd
+
   # rebuilding the artifacts happens after building the example to confirm the example is working
-  # as checked in.
-  # TODO: Run shellcheck
+  # with the artifacts as checked in.
+  - shellcheck ./build.sh
+  # This can take a long time.
   - ./build.sh

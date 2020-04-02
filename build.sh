@@ -72,6 +72,7 @@ EDITOR=true "$DT_ROOT/gn" args "out/$DEPS_CONFIG" --args="is_debug=$DAWN_IS_DEBU
 "$DT_ROOT/ninja" -C "out/$DEPS_CONFIG"
 cp -R src/include/* $DEPS_INCLUDE_FOLDER
 cp -R out/$DEPS_CONFIG/gen/src/include/* $DEPS_INCLUDE_FOLDER
+cp -R third_party/glfw/include/* $DEPS_INCLUDE_FOLDER
 
 cp out/$DEPS_CONFIG/obj/libdawn_native.a $DEPS_LIB_FOLDER
 cp out/$DEPS_CONFIG/obj/libdawn_wire.a $DEPS_LIB_FOLDER

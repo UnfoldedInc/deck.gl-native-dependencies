@@ -8,6 +8,10 @@ DEPS_CONFIG="release"
 # such as x64-linux or x64-osx
 DEPS_ARCH="${DEPS_ARCH:-x64-linux}"
 DEPS_ROOT="$(pwd)/$DEPS_ARCH"
+DEPS_INCLUDE_FOLDER="$DEPS_ROOT/include"
+DEPS_LIB_FOLDER="$DEPS_ROOT/lib"
+
+IS_MAC=$(( $DEPS_ARCH == x64-osx ? 1 : 0 ))
 
 # Dependency revisions to use
 VCPKG_REV=9b44e4768bf25e1ae07e6eaba072c1a1a160f978
@@ -17,6 +21,10 @@ DAWN_REV=3da19b843ffd63d884f3a67f2da3eea20818499a
 # Wipe out existing artifacts and replace with the ones that are now being built
 rm -rf "$DEPS_ROOT"
 
+mkdir -p "$DEPS_INCLUDE_FOLDER"
+mkdir -p "$DEPS_LIB_FOLDER"
+
+# vcpkg
 if [ ! -d vcpkg ] ; then git clone https://github.com/Microsoft/vcpkg.git ; fi
 pushd vcpkg
 git fetch
@@ -27,15 +35,19 @@ git checkout "$VCPKG_REV"
 echo "set(VCPKG_BUILD_TYPE $DEPS_CONFIG)" >> "triplets/$DEPS_ARCH.cmake"
 ./bootstrap-vcpkg.sh -disableMetrics
 # vcpkg-root is used to prevent using a user-wide vcpkg
-./vcpkg --vcpkg-root "$(pwd)" install jsoncpp gtest range-v3 fmt
-./vcpkg --vcpkg-root "$(pwd)" export jsoncpp gtest range-v3 fmt --raw --output="../$DEPS_ARCH/vcpkg"
+VCPKG_DEPENDENCIES="jsoncpp gtest range-v3 fmt"
+# Installing arrow through vcpkg fails using this revision of vcpkg. We handle this in a special way
+if [ ! IS_MAC ] ; then VCPKG_DEPENDENCIES="$VCPKG_DEPENDENCIES arrow" ; fi
+./vcpkg --vcpkg-root "$(pwd)" install $VCPKG_DEPENDENCIES
+# Copy over headers and libs. Not using vcpkg export as it creates a lot of intermediate folders
+cp -R installed/$DEPS_ARCH/include/. $DEPS_INCLUDE_FOLDER
+cp -R installed/$DEPS_ARCH/lib/*.a $DEPS_LIB_FOLDER
 popd
 
-# For dawn, follow the standard build instructions:
+# For dawn, follow the standard build instructions: https://dawn.googlesource.com/dawn/+/HEAD/docs/buiding.md
 if [ ! -d depot_tools ] ; then git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git ; fi
 pushd depot_tools
-# You may add depot_tools to your path rather than using
-# absolute or relative paths.
+# You may add depot_tools to your path rather than using absolute or relative paths
 DT_ROOT="$(pwd)"
 git fetch
 git checkout "$DEPOT_TOOLS_REV"
@@ -56,13 +68,35 @@ fi
 # Override EDITOR to prevent bringing up the editor during the build.
 # TODO: disable building tests
 EDITOR=true "$DT_ROOT/gn" args "out/$DEPS_CONFIG" --args="is_debug=$DAWN_IS_DEBUG dawn_enable_vulkan=false"
-# You may with to specify `-j #` to change the
-# number of parallel builds in Ninja.
+# You may with to specify `-j #` to change the number of parallel builds in Ninja.
 "$DT_ROOT/ninja" -C "out/$DEPS_CONFIG"
-mkdir -p "$DEPS_ROOT/dawn/$DEPS_CONFIG/include"
-cp -R src/include/* "$DEPS_ROOT/dawn/$DEPS_CONFIG/include"
-cp -R out/$DEPS_CONFIG/gen/src/include/* "$DEPS_ROOT/dawn/$DEPS_CONFIG/include"
-mkdir -p "$DEPS_ROOT/dawn/$DEPS_CONFIG/lib"
-cp -R out/$DEPS_CONFIG/*.so "$DEPS_ROOT/dawn/$DEPS_CONFIG/lib"
+cp -R src/include/* $DEPS_INCLUDE_FOLDER
+cp -R out/$DEPS_CONFIG/gen/src/include/* $DEPS_INCLUDE_FOLDER
+
+cp out/$DEPS_CONFIG/obj/libdawn_native.a $DEPS_LIB_FOLDER
+cp out/$DEPS_CONFIG/obj/libdawn_wire.a $DEPS_LIB_FOLDER
+cp out/$DEPS_CONFIG/obj/libdawn_utils.a $DEPS_LIB_FOLDER
+cp out/$DEPS_CONFIG/obj/libdawn_bindings.a $DEPS_LIB_FOLDER
+cp out/$DEPS_CONFIG/obj/src/dawn/libdawn_proc.a $DEPS_LIB_FOLDER
+cp out/$DEPS_CONFIG/obj/src/common/libcommon.a $DEPS_LIB_FOLDER
+cp out/$DEPS_CONFIG/obj/third_party/libglfw.a $DEPS_LIB_FOLDER
+cp out/$DEPS_CONFIG/obj/third_party/shaderc/libshaderc.a $DEPS_LIB_FOLDER
+cp out/$DEPS_CONFIG/obj/src/dawn/dawncpp/webgpu_cpp.o $DEPS_LIB_FOLDER
 
 popd
+
+# macOS specific setup
+if [ IS_MAC ] ; then
+    # Check if Homebrew is installed
+    if ! which brew >/dev/null; then
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+    fi
+
+    # Lookup version 0.16.0 and install it
+    # We could create our own cask and maintain it, but as noted above this is (hopefully) a temporary solution
+    brew extract --force apache-arrow homebrew/cask --version=0.16.0
+    brew install homebrew/cask/apache-arrow@0.16.0
+
+    cp -R /usr/local/Cellar/apache-arrow/0.16.0/include/. $DEPS_INCLUDE_FOLDER
+    cp -R /usr/local/Cellar/apache-arrow/0.16.0/lib/libarrow.a $DEPS_LIB_FOLDER
+fi

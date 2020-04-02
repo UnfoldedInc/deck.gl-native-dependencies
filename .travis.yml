@@ -24,13 +24,13 @@ matrix:
 script:
   - mkdir build
   - pushd build
-  - cmake -DCMAKE_TOOLCHAIN_FILE=../${DEPS_ARCH}/vcpkg/scripts/buildsystems/vcpkg.cmake ../example
+  - cmake -DDEPS_ROOT=../${DEPS_ARCH} ../example
   - make
   - make test
   - popd
 
+  - shellcheck ./build.sh
   # rebuilding the artifacts happens after building the example to confirm the example is working
   # with the artifacts as checked in.
-  - shellcheck ./build.sh
-  # This can take a long time.
-  - ./build.sh
+  # This can take a long time, so it is disabled for now.
+  # - ./build.sh

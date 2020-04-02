@@ -19,7 +19,7 @@
 // THE SOFTWARE.
 
 #include <gtest/gtest.h>
-#include "json/json.h"
+#include <json/json.h>
 
 int main(int argc, char **argv) {
   // Runs all the tests specified in *-test.cpp files that have been registered using TEST or TEST_F macros

@@ -11,7 +11,11 @@ DEPS_ROOT="$(pwd)/$DEPS_ARCH"
 DEPS_INCLUDE_FOLDER="$DEPS_ROOT/include"
 DEPS_LIB_FOLDER="$DEPS_ROOT/lib"
 
-IS_MAC=$(( $DEPS_ARCH == x64-osx ? 1 : 0 ))
+if [ "$DEPS_ARCH" = "x64-osx" ] ; then
+  IS_MAC=true
+else
+  IS_MAC=false
+fi
 
 # Dependency revisions to use
 VCPKG_REV=9b44e4768bf25e1ae07e6eaba072c1a1a160f978
@@ -32,16 +36,19 @@ git fetch
 git reset --hard HEAD
 git checkout "$VCPKG_REV"
 # TODO: May repeatedly add this to the triplet file, so using git reset above
-echo "set(VCPKG_BUILD_TYPE $DEPS_CONFIG)" >> "triplets/$DEPS_ARCH.cmake"
+# TODO: can't because arrow has dependencies that need the debug build
+#echo "set(VCPKG_BUILD_TYPE $DEPS_CONFIG)" >> "triplets/$DEPS_ARCH.cmake"
 ./bootstrap-vcpkg.sh -disableMetrics
 # vcpkg-root is used to prevent using a user-wide vcpkg
 VCPKG_DEPENDENCIES="jsoncpp gtest range-v3 fmt"
 # Installing arrow through vcpkg fails using this revision of vcpkg. We handle this in a special way
-if [ ! IS_MAC ] ; then VCPKG_DEPENDENCIES="$VCPKG_DEPENDENCIES arrow" ; fi
+if ! $IS_MAC ; then VCPKG_DEPENDENCIES="$VCPKG_DEPENDENCIES arrow" ; fi
+# Ignore the expansion here because we are intentionally splitting on spaces to get vcpkg to install a list of packages.
+# shellcheck disable=SC2086
 ./vcpkg --vcpkg-root "$(pwd)" install $VCPKG_DEPENDENCIES
 # Copy over headers and libs. Not using vcpkg export as it creates a lot of intermediate folders
-cp -R installed/$DEPS_ARCH/include/. $DEPS_INCLUDE_FOLDER
-cp -R installed/$DEPS_ARCH/lib/*.a $DEPS_LIB_FOLDER
+cp -R "installed/$DEPS_ARCH/include/"* "$DEPS_INCLUDE_FOLDER"
+cp -R "installed/$DEPS_ARCH/lib/"*.a "$DEPS_LIB_FOLDER"
 popd
 
 # For dawn, follow the standard build instructions: https://dawn.googlesource.com/dawn/+/HEAD/docs/buiding.md
@@ -59,7 +66,7 @@ git checkout "$DAWN_REV"
 cp scripts/standalone.gclient .gclient
 "$DT_ROOT/gclient" sync
 
-if [ "$DEPS_CONFIG" = "release" ] ; then
+if [ "$DEPS_CONFIG" = "Release" ] ; then
     DAWN_IS_DEBUG="false"
 else
     DAWN_IS_DEBUG="true"
@@ -70,24 +77,30 @@ fi
 EDITOR=true "$DT_ROOT/gn" args "out/$DEPS_CONFIG" --args="is_debug=$DAWN_IS_DEBUG dawn_enable_vulkan=false"
 # You may with to specify `-j #` to change the number of parallel builds in Ninja.
 "$DT_ROOT/ninja" -C "out/$DEPS_CONFIG"
-cp -R src/include/* $DEPS_INCLUDE_FOLDER
-cp -R out/$DEPS_CONFIG/gen/src/include/* $DEPS_INCLUDE_FOLDER
-cp -R third_party/glfw/include/* $DEPS_INCLUDE_FOLDER
+cp -R "src/include/"* "$DEPS_INCLUDE_FOLDER"
+cp -R "out/$DEPS_CONFIG/gen/src/include/"* "$DEPS_INCLUDE_FOLDER"
+cp -R third_party/glfw/include/* "$DEPS_INCLUDE_FOLDER"
 
-cp out/$DEPS_CONFIG/obj/libdawn_native.a $DEPS_LIB_FOLDER
-cp out/$DEPS_CONFIG/obj/libdawn_wire.a $DEPS_LIB_FOLDER
-cp out/$DEPS_CONFIG/obj/libdawn_utils.a $DEPS_LIB_FOLDER
-cp out/$DEPS_CONFIG/obj/libdawn_bindings.a $DEPS_LIB_FOLDER
-cp out/$DEPS_CONFIG/obj/src/dawn/libdawn_proc.a $DEPS_LIB_FOLDER
-cp out/$DEPS_CONFIG/obj/src/common/libcommon.a $DEPS_LIB_FOLDER
-cp out/$DEPS_CONFIG/obj/third_party/libglfw.a $DEPS_LIB_FOLDER
-cp out/$DEPS_CONFIG/obj/third_party/shaderc/libshaderc.a $DEPS_LIB_FOLDER
-cp out/$DEPS_CONFIG/obj/src/dawn/dawncpp/webgpu_cpp.o $DEPS_LIB_FOLDER
+cp "out/$DEPS_CONFIG/obj/libdawn_native.a" "$DEPS_LIB_FOLDER"
+cp "out/$DEPS_CONFIG/obj/libdawn_wire.a" "$DEPS_LIB_FOLDER"
+cp "out/$DEPS_CONFIG/obj/libdawn_utils.a" "$DEPS_LIB_FOLDER"
+cp "out/$DEPS_CONFIG/obj/libdawn_bindings.a" "$DEPS_LIB_FOLDER"
+cp "out/$DEPS_CONFIG/obj/src/dawn/libdawn_proc.a" "$DEPS_LIB_FOLDER"
+cp "out/$DEPS_CONFIG/obj/src/common/libcommon.a" "$DEPS_LIB_FOLDER"
+cp "out/$DEPS_CONFIG/obj/third_party/libglfw.a" "$DEPS_LIB_FOLDER"
+# On Linux this is built as a shared object, not a static lib
+if [ -f "out/$DEPS_CONFIG/obj/third_party/shaderc/libshaderc.a" ] ; then
+    cp "out/$DEPS_CONFIG/obj/third_party/shaderc/libshaderc.a" "$DEPS_LIB_FOLDER"
+fi
+if [ -f "out/$DEPS_CONFIG/libshaderc.so" ] ; then
+    cp "out/$DEPS_CONFIG/libshaderc.so" "$DEPS_LIB_FOLDER"
+fi
+cp "out/$DEPS_CONFIG/obj/src/dawn/dawncpp/webgpu_cpp.o" "$DEPS_LIB_FOLDER"
 
 popd
 
 # macOS specific setup
-if [ IS_MAC ] ; then
+if $IS_MAC ; then
     # Check if Homebrew is installed
     if ! which brew >/dev/null; then
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
@@ -95,9 +108,11 @@ if [ IS_MAC ] ; then
 
     # Lookup version 0.16.0 and install it
     # We could create our own cask and maintain it, but as noted above this is (hopefully) a temporary solution
-    brew extract --force apache-arrow homebrew/cask --version=0.16.0
-    brew install homebrew/cask/apache-arrow@0.16.0
+    ARROW_VERSION=0.16.0
+    brew extract --force apache-arrow homebrew/cask "--version=$ARROW_VERSION"
+    brew install "homebrew/cask/apache-arrow@$ARROW_VERSION"
 
-    cp -R /usr/local/Cellar/apache-arrow/0.16.0/include/. $DEPS_INCLUDE_FOLDER
-    cp -R /usr/local/Cellar/apache-arrow/0.16.0/lib/libarrow.a $DEPS_LIB_FOLDER
+    # TODO: Can this path be detected at runtime?
+    cp -R "/usr/local/Cellar/apache-arrow/$ARROW_VERSION/include/" "$DEPS_INCLUDE_FOLDER"
+    cp -R "/usr/local/Cellar/apache-arrow/$ARROW_VERSION/lib/libarrow.a" "$DEPS_LIB_FOLDER"
 fi

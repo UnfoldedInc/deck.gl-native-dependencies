@@ -10,11 +10,11 @@ set(ALL_SOURCE_FILES
     test.cpp
     )
 
-add_executable(example ${ALL_SOURCE_FILES})
-
 include_directories(${DEPS_ROOT}/include)
-find_library(jsoncpp_LIB libjsoncpp.a PATHS ${DEPS_ROOT}/lib)
-find_library(gtest_LIB libgtest.a PATHS ${DEPS_ROOT}/lib)
+find_library(jsoncpp_LIB jsoncpp PATHS ${DEPS_ROOT}/lib NO_DEFAULT_PATH)
+find_library(gtest_LIB gtest PATHS ${DEPS_ROOT}/lib NO_DEFAULT_PATH)
+
+add_executable(example ${ALL_SOURCE_FILES})
 target_link_libraries(example PUBLIC ${jsoncpp_LIB} ${gtest_LIB} pthread)
 
 # Testing

@@ -10,6 +10,10 @@ matrix:
       osx_image: xcode11.3
       env:
         DEPS_ARCH=x64-osx
+      # Don't run shellcheck on Mac OSX
+      script:
+        - make
+        - make test
     - name: "Linux (Clang)"
       os: linux
       compiler: clang
@@ -21,12 +25,14 @@ matrix:
       env:
         DEPS_ARCH=x64-linux
 
-script:
+before_script:
   - mkdir build
   - pushd build
   - cmake -DDEPS_ROOT=../${DEPS_ARCH} ../example
-  - make
+  
+script:
   - make test
+  - make
   - popd
 
   - shellcheck ./build.sh

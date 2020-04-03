@@ -102,7 +102,7 @@ popd
 # macOS specific setup
 if $IS_MAC ; then
     # Check if Homebrew is installed
-    if ! which brew >/dev/null; then
+    if ! command -v brew >/dev/null; then
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     fi
 

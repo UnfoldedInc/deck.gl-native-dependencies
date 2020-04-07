@@ -40,7 +40,7 @@ git checkout "$VCPKG_REV"
 #echo "set(VCPKG_BUILD_TYPE $DEPS_CONFIG)" >> "triplets/$DEPS_ARCH.cmake"
 ./bootstrap-vcpkg.sh -disableMetrics
 # vcpkg-root is used to prevent using a user-wide vcpkg
-VCPKG_DEPENDENCIES="jsoncpp gtest range-v3 fmt"
+VCPKG_DEPENDENCIES="jsoncpp gtest range-v3 fmt shaderc"
 # Installing arrow through vcpkg fails using this revision of vcpkg. We handle this in a special way
 if ! $IS_MAC ; then VCPKG_DEPENDENCIES="$VCPKG_DEPENDENCIES arrow" ; fi
 # Ignore the expansion here because we are intentionally splitting on spaces to get vcpkg to install a list of packages.
@@ -66,7 +66,7 @@ git checkout "$DAWN_REV"
 cp scripts/standalone.gclient .gclient
 "$DT_ROOT/gclient" sync
 
-if [ "$DEPS_CONFIG" = "Release" ] ; then
+if [ "$DEPS_CONFIG" = "release" ] ; then
     DAWN_IS_DEBUG="false"
 else
     DAWN_IS_DEBUG="true"
@@ -74,27 +74,37 @@ fi
 
 # Override EDITOR to prevent bringing up the editor during the build.
 # TODO: disable building tests
-EDITOR=true "$DT_ROOT/gn" args "out/$DEPS_CONFIG" --args="is_debug=$DAWN_IS_DEBUG dawn_enable_vulkan=false"
+EDITOR=true "$DT_ROOT/gn" args "out/$DEPS_CONFIG" --args="is_debug=$DAWN_IS_DEBUG"
 # You may with to specify `-j #` to change the number of parallel builds in Ninja.
 "$DT_ROOT/ninja" -C "out/$DEPS_CONFIG"
 cp -R "src/include/"* "$DEPS_INCLUDE_FOLDER"
 cp -R "out/$DEPS_CONFIG/gen/src/include/"* "$DEPS_INCLUDE_FOLDER"
 cp -R third_party/glfw/include/* "$DEPS_INCLUDE_FOLDER"
 
-cp "out/$DEPS_CONFIG/obj/libdawn_native.a" "$DEPS_LIB_FOLDER"
-cp "out/$DEPS_CONFIG/obj/libdawn_wire.a" "$DEPS_LIB_FOLDER"
-cp "out/$DEPS_CONFIG/obj/libdawn_utils.a" "$DEPS_LIB_FOLDER"
+# These are .so on Linux, and .dylib on Mac
+if [ -f "out/$DEPS_CONFIG/libdawn_native.dylib" ] ; then
+    cp "out/$DEPS_CONFIG/libdawn_native.dylib" "$DEPS_LIB_FOLDER"
+fi
+if [ -f "out/$DEPS_CONFIG/libdawn_native.so" ] ; then
+    cp "out/$DEPS_CONFIG/libdawn_native.so" "$DEPS_LIB_FOLDER"
+fi
+
+if [ -f "out/$DEPS_CONFIG/libdawn_proc.dylib" ] ; then
+    cp "out/$DEPS_CONFIG/libdawn_proc.dylib" "$DEPS_LIB_FOLDER"
+fi
+if [ -f "out/$DEPS_CONFIG/libdawn_proc.so" ] ; then
+    cp "out/$DEPS_CONFIG/libdawn_proc.so" "$DEPS_LIB_FOLDER"
+fi
+
+if [ -f "out/$DEPS_CONFIG/libdawn_wire.dylib" ] ; then
+    cp "out/$DEPS_CONFIG/libdawn_wire.dylib" "$DEPS_LIB_FOLDER"
+fi
+if [ -f "out/$DEPS_CONFIG/libdawn_wire.so" ] ; then
+    cp "out/$DEPS_CONFIG/libdawn_wire.so" "$DEPS_LIB_FOLDER"
+fi
+
 cp "out/$DEPS_CONFIG/obj/libdawn_bindings.a" "$DEPS_LIB_FOLDER"
-cp "out/$DEPS_CONFIG/obj/src/dawn/libdawn_proc.a" "$DEPS_LIB_FOLDER"
-cp "out/$DEPS_CONFIG/obj/src/common/libcommon.a" "$DEPS_LIB_FOLDER"
 cp "out/$DEPS_CONFIG/obj/third_party/libglfw.a" "$DEPS_LIB_FOLDER"
-# On Linux this is built as a shared object, not a static lib
-if [ -f "out/$DEPS_CONFIG/obj/third_party/shaderc/libshaderc.a" ] ; then
-    cp "out/$DEPS_CONFIG/obj/third_party/shaderc/libshaderc.a" "$DEPS_LIB_FOLDER"
-fi
-if [ -f "out/$DEPS_CONFIG/libshaderc.so" ] ; then
-    cp "out/$DEPS_CONFIG/libshaderc.so" "$DEPS_LIB_FOLDER"
-fi
 cp "out/$DEPS_CONFIG/obj/src/dawn/dawncpp/webgpu_cpp.o" "$DEPS_LIB_FOLDER"
 
 popd

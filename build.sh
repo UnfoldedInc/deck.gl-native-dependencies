@@ -78,6 +78,7 @@ EDITOR=true "$DT_ROOT/gn" args "out/$DEPS_CONFIG" --args="is_debug=$DAWN_IS_DEBU
 # You may with to specify `-j #` to change the number of parallel builds in Ninja.
 "$DT_ROOT/ninja" -C "out/$DEPS_CONFIG"
 cp -R "src/include/"* "$DEPS_INCLUDE_FOLDER"
+# Needed for webgpu_cpp.h
 cp -R "out/$DEPS_CONFIG/gen/src/include/"* "$DEPS_INCLUDE_FOLDER"
 cp -R third_party/glfw/include/* "$DEPS_INCLUDE_FOLDER"
 
@@ -103,7 +104,6 @@ if [ -f "out/$DEPS_CONFIG/libdawn_wire.so" ] ; then
     cp "out/$DEPS_CONFIG/libdawn_wire.so" "$DEPS_LIB_FOLDER"
 fi
 
-cp "out/$DEPS_CONFIG/obj/libdawn_bindings.a" "$DEPS_LIB_FOLDER"
 cp "out/$DEPS_CONFIG/obj/third_party/libglfw.a" "$DEPS_LIB_FOLDER"
 cp "out/$DEPS_CONFIG/obj/src/dawn/dawncpp/webgpu_cpp.o" "$DEPS_LIB_FOLDER"
 
@@ -119,8 +119,8 @@ if $IS_MAC ; then
     # Lookup version 0.16.0 and install it
     # We could create our own cask and maintain it, but as noted above this is (hopefully) a temporary solution
     ARROW_VERSION=0.16.0
-    brew extract --force apache-arrow homebrew/cask "--version=$ARROW_VERSION"
-    brew install "homebrew/cask/apache-arrow@$ARROW_VERSION"
+    # brew extract --force apache-arrow homebrew/cask "--version=$ARROW_VERSION"
+    # brew install "homebrew/cask/apache-arrow@$ARROW_VERSION"
 
     # TODO: Can this path be detected at runtime?
     cp -R "/usr/local/Cellar/apache-arrow/$ARROW_VERSION/include/" "$DEPS_INCLUDE_FOLDER"

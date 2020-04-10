@@ -49,6 +49,14 @@ if ! $IS_MAC ; then VCPKG_DEPENDENCIES="$VCPKG_DEPENDENCIES arrow" ; fi
 # Copy over headers and libs. Not using vcpkg export as it creates a lot of intermediate folders
 cp -R "installed/$DEPS_ARCH/include/"* "$DEPS_INCLUDE_FOLDER"
 cp -R "installed/$DEPS_ARCH/lib/"*.a "$DEPS_LIB_FOLDER"
+
+if ! $IS_MAC ; then
+    # On Linux these files do not get copied over for unclear reasons, so they are manually copied over.
+    mkdir -p "$DEPS_INCLUDE_FOLDER/arrow/json"
+    cp -R buildtrees/arrow/src/row*/cpp/src/arrow/json/*.h "$DEPS_INCLUDE_FOLDER/arrow/json"
+    mkdir -p "$DEPS_INCLUDE_FOLDER/arrow/csv"
+    cp -R buildtrees/arrow/src/row*/cpp/src/arrow/csv/*.h "$DEPS_INCLUDE_FOLDER/arrow/csv"
+fi
 popd
 
 # For dawn, follow the standard build instructions: https://dawn.googlesource.com/dawn/+/HEAD/docs/buiding.md

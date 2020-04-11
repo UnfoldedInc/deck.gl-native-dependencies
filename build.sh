@@ -104,6 +104,9 @@ fi
 if [ -f "out/$DEPS_CONFIG/libdawn_proc.so" ] ; then
     cp "out/$DEPS_CONFIG/libdawn_proc.so" "$DEPS_LIB_FOLDER"
 fi
+if [ -f "out/$DEPS_CONFIG/libdawn_proc.a" ] ; then
+    cp "out/$DEPS_CONFIG/libdawn_proc.a" "$DEPS_LIB_FOLDER"
+fi
 
 if [ -f "out/$DEPS_CONFIG/libdawn_wire.dylib" ] ; then
     cp "out/$DEPS_CONFIG/libdawn_wire.dylib" "$DEPS_LIB_FOLDER"
@@ -112,6 +115,11 @@ if [ -f "out/$DEPS_CONFIG/libdawn_wire.so" ] ; then
     cp "out/$DEPS_CONFIG/libdawn_wire.so" "$DEPS_LIB_FOLDER"
 fi
 
+if ! $IS_MAC ; then
+    # Under Linux this is a thin archive and needs the objects
+    # to be at certain relative paths.
+    cp -R "out/$DEPS_CONFIG/obj/third_party/glfw/" "$DEPS_LIB_FOLDER"
+fi
 cp "out/$DEPS_CONFIG/obj/third_party/libglfw.a" "$DEPS_LIB_FOLDER"
 cp "out/$DEPS_CONFIG/obj/src/dawn/dawncpp/webgpu_cpp.o" "$DEPS_LIB_FOLDER"
 

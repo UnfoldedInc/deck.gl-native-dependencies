@@ -18,7 +18,7 @@ else
 fi
 
 # Dependency revisions to use
-VCPKG_REV=9b44e4768bf25e1ae07e6eaba072c1a1a160f978
+VCPKG_REV=a62cad9bd3bc34316e103d738f1d72c62561b1f7
 DEPOT_TOOLS_REV=a680c23e78599f7f0b761ada3158387a9e9a05b3
 DAWN_REV=3da19b843ffd63d884f3a67f2da3eea20818499a
 
@@ -49,14 +49,6 @@ if ! $IS_MAC ; then VCPKG_DEPENDENCIES="$VCPKG_DEPENDENCIES arrow" ; fi
 # Copy over headers and libs. Not using vcpkg export as it creates a lot of intermediate folders
 cp -R "installed/$DEPS_ARCH/include/"* "$DEPS_INCLUDE_FOLDER"
 cp -R "installed/$DEPS_ARCH/lib/"*.a "$DEPS_LIB_FOLDER"
-
-if ! $IS_MAC ; then
-    # On Linux these files do not get copied over for unclear reasons, so they are manually copied over.
-    mkdir -p "$DEPS_INCLUDE_FOLDER/arrow/json"
-    cp -R buildtrees/arrow/src/row*/cpp/src/arrow/json/*.h "$DEPS_INCLUDE_FOLDER/arrow/json"
-    mkdir -p "$DEPS_INCLUDE_FOLDER/arrow/csv"
-    cp -R buildtrees/arrow/src/row*/cpp/src/arrow/csv/*.h "$DEPS_INCLUDE_FOLDER/arrow/csv"
-fi
 popd
 
 # For dawn, follow the standard build instructions: https://dawn.googlesource.com/dawn/+/HEAD/docs/buiding.md

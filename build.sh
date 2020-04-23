@@ -18,7 +18,8 @@ else
 fi
 
 # Dependency revisions to use
-VCPKG_REV=9b44e4768bf25e1ae07e6eaba072c1a1a160f978
+# TODO: This has a different version of arrow! 0.17.0
+VCPKG_REV=cc906546f406538ffcaff59dc805f6e5b2f284e1
 DEPOT_TOOLS_REV=a680c23e78599f7f0b761ada3158387a9e9a05b3
 DAWN_REV=3da19b843ffd63d884f3a67f2da3eea20818499a
 
@@ -39,13 +40,12 @@ git checkout "$VCPKG_REV"
 # TODO: can't because arrow has dependencies that need the debug build
 #echo "set(VCPKG_BUILD_TYPE $DEPS_CONFIG)" >> "triplets/$DEPS_ARCH.cmake"
 ./bootstrap-vcpkg.sh -disableMetrics
-# vcpkg-root is used to prevent using a user-wide vcpkg
 VCPKG_DEPENDENCIES="jsoncpp gtest range-v3 fmt shaderc"
 # Installing arrow through vcpkg fails using this revision of vcpkg. We handle this in a special way
 if ! $IS_MAC ; then VCPKG_DEPENDENCIES="$VCPKG_DEPENDENCIES arrow" ; fi
 # Ignore the expansion here because we are intentionally splitting on spaces to get vcpkg to install a list of packages.
 # shellcheck disable=SC2086
-./vcpkg --vcpkg-root "$(pwd)" install $VCPKG_DEPENDENCIES
+VCPKG_ROOT="." ./vcpkg install $VCPKG_DEPENDENCIES
 # Copy over headers and libs. Not using vcpkg export as it creates a lot of intermediate folders
 cp -R "installed/$DEPS_ARCH/include/"* "$DEPS_INCLUDE_FOLDER"
 cp -R "installed/$DEPS_ARCH/lib/"*.a "$DEPS_LIB_FOLDER"
@@ -96,6 +96,9 @@ fi
 if [ -f "out/$DEPS_CONFIG/libdawn_proc.so" ] ; then
     cp "out/$DEPS_CONFIG/libdawn_proc.so" "$DEPS_LIB_FOLDER"
 fi
+if [ -f "out/$DEPS_CONFIG/libdawn_proc.a" ] ; then
+    cp "out/$DEPS_CONFIG/libdawn_proc.a" "$DEPS_LIB_FOLDER"
+fi
 
 if [ -f "out/$DEPS_CONFIG/libdawn_wire.dylib" ] ; then
     cp "out/$DEPS_CONFIG/libdawn_wire.dylib" "$DEPS_LIB_FOLDER"
@@ -104,6 +107,11 @@ if [ -f "out/$DEPS_CONFIG/libdawn_wire.so" ] ; then
     cp "out/$DEPS_CONFIG/libdawn_wire.so" "$DEPS_LIB_FOLDER"
 fi
 
+if ! $IS_MAC ; then
+    # Under Linux this is a thin archive and needs the objects
+    # to be at certain relative paths.
+    cp -R "out/$DEPS_CONFIG/obj/third_party/glfw/" "$DEPS_LIB_FOLDER"
+fi
 cp "out/$DEPS_CONFIG/obj/third_party/libglfw.a" "$DEPS_LIB_FOLDER"
 cp "out/$DEPS_CONFIG/obj/src/dawn/dawncpp/webgpu_cpp.o" "$DEPS_LIB_FOLDER"
 

@@ -15,38 +15,21 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef ARROW_UTIL_COMPRESSION_LZ4_H
-#define ARROW_UTIL_COMPRESSION_LZ4_H
+#pragma once
 
-#include <cstdint>
 #include <memory>
 
-#include "arrow/status.h"
-#include "arrow/util/compression.h"
+#include "arrow/util/delimiting.h"
+#include "arrow/util/macros.h"
 #include "arrow/util/visibility.h"
 
 namespace arrow {
-namespace util {
+namespace json {
 
-// Lz4 codec.
-class ARROW_EXPORT Lz4Codec : public Codec {
- public:
-  Result<int64_t> Decompress(int64_t input_len, const uint8_t* input,
-                             int64_t output_buffer_len, uint8_t* output_buffer) override;
+struct ParseOptions;
 
-  Result<int64_t> Compress(int64_t input_len, const uint8_t* input,
-                           int64_t output_buffer_len, uint8_t* output_buffer) override;
+ARROW_EXPORT
+std::unique_ptr<Chunker> MakeChunker(const ParseOptions& options);
 
-  int64_t MaxCompressedLen(int64_t input_len, const uint8_t* input) override;
-
-  Result<std::shared_ptr<Compressor>> MakeCompressor() override;
-
-  Result<std::shared_ptr<Decompressor>> MakeDecompressor() override;
-
-  const char* name() const override { return "lz4"; }
-};
-
-}  // namespace util
+}  // namespace json
 }  // namespace arrow
-
-#endif  // ARROW_UTIL_COMPRESSION_LZ4_H

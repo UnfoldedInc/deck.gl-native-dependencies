@@ -19,7 +19,7 @@ fi
 
 # Dependency revisions to use
 # TODO: This has a different version of arrow! 0.17.0
-VCPKG_REV=cc906546f406538ffcaff59dc805f6e5b2f284e1
+VCPKG_REV=d51b4cd532662e5a32d3d0799430edc502d7d296
 DEPOT_TOOLS_REV=a680c23e78599f7f0b761ada3158387a9e9a05b3
 DAWN_REV=3da19b843ffd63d884f3a67f2da3eea20818499a
 

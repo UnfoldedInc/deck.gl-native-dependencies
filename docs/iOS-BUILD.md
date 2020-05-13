@@ -70,10 +70,40 @@ cmake -S . -B build
 ```
 
 ```
-cmake --build build --config Release --target install -- -j 16
+cmake --build build --config Release --target install
 ```
 
 ### Additional Notes
 
 - `Xcode` generator is used in order to leverage some of the configuration `Xcode` performs automatically. `Make` also seems to work, but does not add the appropriate flag needed for `bitcode` support automatically. This can likely be supplied externally
 - `cmake` has support for building multiple architectures at once, and combining the resulting libraries automatically. We do not make use of this in order to specify appropriate `CMAKE_SYSTEM_PROCESSOR` values for each specific architecture, as well as due to configuration not picking up dependencies based on whether build system is `iphoneos` or `iphonesimulator`, resulting in builds failing due to invalid linking
+
+## jsoncpp (v1.9.2)
+
+### Issues and solutions/workarounds
+
+#### Several feature checks failing during configuration
+This happens due to an issue with `cmake` ([#18993](https://gitlab.kitware.com/cmake/cmake/-/issues/18993), [#20013](https://gitlab.kitware.com/cmake/cmake/-/issues/20013)), the same one encountered while building `arrow` when using `Xcode` generator. Solved by following the workaround from mentioned threads, and adding `set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "NO")` to `Darwin.cmake` toolchain
+
+### Building
+
+After applying solutions and workarounds mentioned above, following commands were used to configure and build `jsoncpp`:
+
+```
+cmake -S . -B build 
+  -GXcode                                           # Use Xcode generator as suggested by cmake guide
+  -DCMAKE_INSTALL_PREFIX=`pwd`/install              # Install into `install` folder within the repo
+  -DCMAKE_SYSTEM_NAME=iOS                           # Cross compile for iOS
+  "-DCMAKE_OSX_ARCHITECTURES=armv7;armv7s;arm64;arm64e;x86_64;i386" # Build for all the relevant iOS architectures
+  -DCMAKE_OSX_DEPLOYMENT_TARGET=9.3                 # Minimum iOS deployment target
+  -DCMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH=NO       # Xcode setting that allows to build for an arbitrery architecture
+  -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO   # Disable signing as it is not necessary
+  -DJSONCPP_WITH_CMAKE_PACKAGE=OFF                  # The rest of the settings are jsoncpp specific and skip unnecessary steps
+  -DJSONCPP_WITH_PKGCONFIG_SUPPORT=OFF
+  -DJSONCPP_WITH_POST_BUILD_UNITTEST=OFF
+  -DJSONCPP_WITH_TESTS=OFF
+```
+
+```
+cmake --build build --config Release --target install
+```

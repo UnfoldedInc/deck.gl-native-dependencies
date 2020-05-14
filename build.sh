@@ -18,7 +18,6 @@ else
 fi
 
 # Dependency revisions to use
-# TODO: This has a different version of arrow! 0.17.0
 VCPKG_REV=d51b4cd532662e5a32d3d0799430edc502d7d296
 DEPOT_TOOLS_REV=a680c23e78599f7f0b761ada3158387a9e9a05b3
 DAWN_REV=3da19b843ffd63d884f3a67f2da3eea20818499a
@@ -74,7 +73,7 @@ fi
 
 # Override EDITOR to prevent bringing up the editor during the build.
 # TODO: disable building tests
-EDITOR=true "$DT_ROOT/gn" args "out/$DEPS_CONFIG" --args="is_debug=$DAWN_IS_DEBUG"
+"$DT_ROOT/gn" gen "out/$DEPS_CONFIG" --args="is_debug=$DAWN_IS_DEBUG"
 # You may with to specify `-j #` to change the number of parallel builds in Ninja.
 "$DT_ROOT/ninja" -C "out/$DEPS_CONFIG"
 cp -R "src/include/"* "$DEPS_INCLUDE_FOLDER"
@@ -127,8 +126,8 @@ if $IS_MAC ; then
     # Lookup version 0.16.0 and install it
     # We could create our own cask and maintain it, but as noted above this is (hopefully) a temporary solution
     ARROW_VERSION=0.16.0
-    # brew extract --force apache-arrow homebrew/cask "--version=$ARROW_VERSION"
-    # brew install "homebrew/cask/apache-arrow@$ARROW_VERSION"
+    brew extract --force apache-arrow homebrew/cask "--version=$ARROW_VERSION"
+    brew install "homebrew/cask/apache-arrow@$ARROW_VERSION"
 
     # TODO: Can this path be detected at runtime?
     cp -R "/usr/local/Cellar/apache-arrow/$ARROW_VERSION/include/" "$DEPS_INCLUDE_FOLDER"

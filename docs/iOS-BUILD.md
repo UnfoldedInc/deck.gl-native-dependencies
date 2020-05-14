@@ -2,7 +2,7 @@
 
 As noted in [README](https://github.com/UnfoldedInc/deck.gl-native-dependencies/blob/master/README.md), some of the iOS dependencies are built manually due to lack of first-class support by package managers and libraries themselves. This document describes steps taken to build each of those dependencies. Note that building some of the dependencies required workarounds that patch up issues with current versions of build tools, which may not necessarily be applicable in the future.
 
-## Arrow (v0.16.0)
+## Arrow (v0.17.0)
 
 ### Resources
 

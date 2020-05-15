@@ -107,3 +107,25 @@ cmake -S . -B build
 ```
 cmake --build build --config Release --target install
 ```
+
+## FMT (v6.2.1)
+
+### Issues and solutions/workarounds
+
+#### Several feature checks failing during configuration
+This happens due to an issue with `cmake` ([#18993](https://gitlab.kitware.com/cmake/cmake/-/issues/18993), [#20013](https://gitlab.kitware.com/cmake/cmake/-/issues/20013)), the same one encountered while building `arrow` when using `Xcode` generator. Solved by following the workaround from mentioned threads, and adding `set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "NO")` to `Darwin.cmake` toolchain
+
+### Building
+
+After applying solutions and workarounds mentioned above, following commands were used to configure and build `fmt`:
+
+```
+cmake -S . -B build 
+  -GXcode                                           # Use Xcode generator as suggested by cmake guide
+  -DCMAKE_INSTALL_PREFIX=`pwd`/install              # Install into `install` folder within the repo
+  -DCMAKE_SYSTEM_NAME=iOS                           # Cross compile for iOS
+  "-DCMAKE_OSX_ARCHITECTURES=armv7;armv7s;arm64;arm64e;x86_64;i386" # Build for all the relevant iOS architectures
+  -DCMAKE_OSX_DEPLOYMENT_TARGET=9.3                 # Minimum iOS deployment target
+  -DCMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH=NO       # Xcode setting that allows to build for an arbitrery architecture
+  -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO   # Disable signing as it is not necessary
+```

@@ -129,3 +129,7 @@ cmake -S . -B build
   -DCMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH=NO       # Xcode setting that allows to build for an arbitrery architecture
   -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO   # Disable signing as it is not necessary
 ```
+
+## range-v3
+
+As this is a header-only library, headers were taken from `x64-osx` artifacts. The library itself builds fine for iOS with a regular set of build commands.

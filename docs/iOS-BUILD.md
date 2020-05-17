@@ -123,6 +123,40 @@ cmake --build build --config Release --target install
 - `Xcode` generator is used in order to leverage some of the configuration `Xcode` performs automatically. `Make` also seems to work, but does not add the appropriate flag needed for `bitcode` support automatically. This can likely be supplied externally
 - `cmake` has support for building multiple architectures at once, and combining the resulting libraries automatically. We do not make use of this in order to specify appropriate `CMAKE_SYSTEM_PROCESSOR` values for each specific architecture, as well as due to configuration not picking up dependencies based on whether build system is `iphoneos` or `iphonesimulator`, resulting in builds failing due to invalid linking
 
+## shaderc (v2020.0)
+
+### Issues and solutions/workarounds
+
+#### Several feature checks failing during configuration
+This happens due to an issue with `cmake` ([#18993](https://gitlab.kitware.com/cmake/cmake/-/issues/18993), [#20013](https://gitlab.kitware.com/cmake/cmake/-/issues/20013)), the same one encountered while building `arrow` when using `Xcode` generator. Solved by following the workaround from mentioned threads, and adding `set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "NO")` to `Darwin.cmake` toolchain
+
+#### install TARGETS given no BUNDLE DESTINATION for MACOSX_BUNDLE executable
+Resolved by providing a DESTINATION property for BUNDLE type of resources in `install` functions wherever RUNTIME type was present. This is part of [shaderc patch](/patches/shaderc/shaderc-iOS-build.patch)
+
+#### ../third_party/spirv-tools/tools/reduce/reduce.cpp:33:18: error: 'system' is unavailable: not available on iOS
+cmake setup seems to rely on `IOS_PLATFORM` flag to exclude some iOS incompatible features, specifying `-DIOS_PLATFORM` doesn't seem to work correctly though, so the flag is just switched on as part of [shaderc patch](/patches/shaderc/shaderc-iOS-build.patch)
+
+#### CMake Error at libshaderc/cmake_install.cmake:146 (file): file INSTALL cannot find "/libshaderc/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/libshaderc_combined.a": No such file or directory.
+This shows up at the end of installation. For whatever reason, `libshaderc_combined.a` could not be found and is not copied over. However, the file is available to be picked up from `build/shaderc/[Release/Debug]-*/libshaderc_combined.a`
+
+### Building
+
+After applying solutions and workarounds mentioned above, following commands were used to configure and build `shaderc`:
+
+```
+cmake -S . -B build 
+  -GXcode                                         # Use Xcode generator as suggested by cmake guide
+  -DCMAKE_INSTALL_PREFIX=`pwd`/install            # Install into `install` folder within the repo
+  -DCMAKE_SYSTEM_NAME=iOS                         # Cross compile for iOS
+  "-DCMAKE_OSX_ARCHITECTURES=armv7;armv7s;arm64;arm64e" # Build for all the relevant iOS architectures
+  -DCMAKE_OSX_DEPLOYMENT_TARGET=9.3               # Minimum iOS deployment target
+  -DCMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH=NO     # Xcode setting that allows to build for an arbitrery architecture
+  -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO # Disable signing as it is not necessary
+  -DSHADERC_SKIP_TESTS=true                       # Skip trying to build tests
+  -DIOS_PLATFORM=ON                               # Attempt at enabling IOS_PLATFORM flag
+  -DSHADERC_SKIP_INSTALL=OFF                      # Do not skip installing
+```
+
 ## jsoncpp (v1.9.2)
 
 ### Issues and solutions/workarounds

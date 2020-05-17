@@ -2,6 +2,49 @@
 
 As noted in [README](https://github.com/UnfoldedInc/deck.gl-native-dependencies/blob/master/README.md), some of the iOS dependencies are built manually due to lack of first-class support by package managers and libraries themselves. This document describes steps taken to build each of those dependencies. Note that building some of the dependencies required workarounds that patch up issues with current versions of build tools, which may not necessarily be applicable in the future.
 
+## Dawn (3da19b843ffd63d884f3a67f2da3eea20818499a)
+
+### Resources
+
+- http://webrtc.github.io/webrtc-org/native-code/ios/
+- https://gn.googlesource.com/gn/+/master/docs/reference.md
+- https://chromium.googlesource.com/chromium/src/tools/gn/+/48062805e19b4697c5fbd926dc649c78b6aaa138/docs/quick_start.md
+- https://v8.dev/docs/cross-compile-ios
+
+### Issues and solutions/workarounds
+
+iOS was not part of the build system setup, so a few tweaks had to be made in order to enable it. These additions are available as a git patch that can be found [here](/patches/dawn/dawn-iOS-build.patch).
+
+### Building
+
+After applying solutions and workarounds mentioned above, following commands were used to configure and build `dawn`:
+
+```
+gn gen out/ios --args='
+  target_os="ios"                # Target iOS - https://gn.googlesource.com/gn/+/master/docs/reference.md#var_target_os
+  target_cpu="arm64"             # Target CPU architecture - https://gn.googlesource.com/gn/+/master/docs/reference.md#var_target_cpu
+                                 # This should be either arm64 (device) or x64 (simulator)
+  ios_enable_code_signing=false  # Disable code signing as it is not necessary
+  is_debug=false                 # Release build
+  enable_ios_bitcode=true        # Enable bitcode explicitly
+  ios_deployment_target="12.0"   # iOS deployment target, minimum is 12.0 (device) or 13.0 (simulator)
+  is_component_build=false       
+  use_custom_libcxx=false
+  '
+```
+
+```
+ninja -C out/ios
+```
+
+### Additional Notes
+
+- `Dawn` makes use of some Metal API that is available on iOS12+, so `ios_deployment_target` has to be set to `12.0` or higher when building for a device
+- `Metal` became available on simulators with iOS13, so when building for simulator (`x64`), `ios_deployment_target` has to be `13.0` or higher
+- `Dawn` cannot be built for 32-bit devices, as building for 32-bit devices requires `ios_deployment_target` to be `10.0` or less, which per above notes dawn is not compatible with
+- Per [these docs](https://gn.googlesource.com/gn/+/master/docs/reference.md#built_in-predefined-variables-target_cpu_the-desired-cpu-architecture-for-the-build-possible-values), `gn` `target_cpu` option does not have specialized support for `arm64e`, so the build the build that's in `arm64e-ios` folder is a copy of `arm64-ios`, as they are compatible with each other
+- C++ API that we're making use of doesn't seem to be part of any library, but rather its own object `webgpu_cpp.o`, we copy this object manually and link against it. The issue on iOS is that this object isn't compiled with bitcode option, making it so that the app that links against it cannot use bitcode either
+
 ## Arrow (v0.17.0)
 
 ### Resources
@@ -43,6 +86,8 @@ When using `-DARROW_JSON=ON` option, external dependency to [rapidjson](https://
 
 #### Failed to build Boost.Build build engine
 Cross compiling `Boost` does not seem to work. It was eventually resolved and built using [this script](https://github.com/faithfracture/Apple-Boost-BuildScript). As there were still issues plugging the built library back into the build process, workaround was building `arrow` without `parquet` support, which was the option that required `Boost`
+
+Modifications to Arrow source can be found as a patch [here](/patches/arrow/arrow-iOS-build.patch).
 
 ### Building
 

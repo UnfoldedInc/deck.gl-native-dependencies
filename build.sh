@@ -73,7 +73,7 @@ fi
 
 # Override EDITOR to prevent bringing up the editor during the build.
 # TODO: disable building tests
-EDITOR=true "$DT_ROOT/gn" args "out/$DEPS_CONFIG" --args="is_debug=$DAWN_IS_DEBUG"
+"$DT_ROOT/gn" gen "out/$DEPS_CONFIG" --args="is_debug=$DAWN_IS_DEBUG"
 # You may with to specify `-j #` to change the number of parallel builds in Ninja.
 "$DT_ROOT/ninja" -C "out/$DEPS_CONFIG"
 cp -R "src/include/"* "$DEPS_INCLUDE_FOLDER"

@@ -1,0 +1,85 @@
+From f86f742dec7748ee6fccc05e890720ece6c2295c Mon Sep 17 00:00:00 2001
+From: Ilija Puaca <ipuaca@gmail.com>
+Date: Sun, 17 May 2020 15:10:06 +0800
+Subject: [PATCH] iOS build fixups
+
+---
+ CMakeLists.txt                 | 2 ++
+ glslc/CMakeLists.txt           | 3 ++-
+ libshaderc/CMakeLists.txt      | 3 ++-
+ libshaderc_spvc/CMakeLists.txt | 3 ++-
+ spvc/CMakeLists.txt            | 3 ++-
+ 5 files changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 93a808a..1463d24 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -40,6 +40,8 @@ option(SHADERC_ENABLE_WERROR_COMPILE "Enable passing -Werror to compiler, if ava
+ 
+ set (CMAKE_CXX_STANDARD 11)
+ 
++set(IOS_PLATFORM true)
++
+ include(GNUInstallDirs)
+ include(cmake/setup_build.cmake)
+ include(cmake/utils.cmake)
+diff --git a/glslc/CMakeLists.txt b/glslc/CMakeLists.txt
+index acf6fb0..9bd0901 100644
+--- a/glslc/CMakeLists.txt
++++ b/glslc/CMakeLists.txt
+@@ -40,7 +40,8 @@ shaderc_add_asciidoc(glslc_doc_README README)
+ 
+ if(SHADERC_ENABLE_INSTALL)
+   install(TARGETS glslc_exe
+-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
++    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
++    BUNDLE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+ endif(SHADERC_ENABLE_INSTALL)
+ 
+ add_subdirectory(test)
+diff --git a/libshaderc/CMakeLists.txt b/libshaderc/CMakeLists.txt
+index f4a80d8..4df1b1f 100644
+--- a/libshaderc/CMakeLists.txt
++++ b/libshaderc/CMakeLists.txt
+@@ -43,7 +43,8 @@ if(SHADERC_ENABLE_INSTALL)
+   install(TARGETS shaderc shaderc_shared
+     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
++    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
++    BUNDLE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+ endif(SHADERC_ENABLE_INSTALL)
+ 
+ find_package(Threads)
+diff --git a/libshaderc_spvc/CMakeLists.txt b/libshaderc_spvc/CMakeLists.txt
+index b22f9eb..e71f5ef 100644
+--- a/libshaderc_spvc/CMakeLists.txt
++++ b/libshaderc_spvc/CMakeLists.txt
+@@ -66,7 +66,8 @@ if(SHADERC_ENABLE_INSTALL)
+   install(TARGETS shaderc_spvc shaderc_spvc_shared
+     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
++    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
++    BUNDLE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+ endif(SHADERC_ENABLE_INSTALL)
+ 
+ shaderc_add_tests(
+diff --git a/spvc/CMakeLists.txt b/spvc/CMakeLists.txt
+index f465972..73e6051 100644
+--- a/spvc/CMakeLists.txt
++++ b/spvc/CMakeLists.txt
+@@ -9,7 +9,8 @@ shaderc_add_asciidoc(spvc_doc_README README)
+ 
+ if(SHADERC_ENABLE_INSTALL)
+   install(TARGETS spvc_exe
+-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
++    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
++    BUNDLE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+ endif(SHADERC_ENABLE_INSTALL)
+ 
+ if(${SHADERC_ENABLE_TESTS})
+-- 
+2.24.2 (Apple Git-127)
+

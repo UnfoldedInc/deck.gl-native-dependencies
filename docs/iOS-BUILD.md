@@ -15,6 +15,9 @@ As noted in [README](https://github.com/UnfoldedInc/deck.gl-native-dependencies/
 
 iOS was not part of the build system setup, so a few tweaks had to be made in order to enable it. These additions are available as a git patch that can be found [here](/patches/dawn/dawn-iOS-build.patch).
 
+#### Modifying the install path
+Resulting .dylib files use relative install paths such as `./libdawn_native.dylib`. This can likely be specified as part of build settings, but it's not clear how to do that with Ninja. The libraries that are checked in have these install paths modified as such: `install_name_tool -id @rpath/libdawn_native.dylib libdawn_native.dylib`. Using `@rpath` makes it so that runtime lookup path can be specified when building the product instead of having them be tied to the executable
+
 ### Building
 
 After applying solutions and workarounds mentioned above, following commands were used to configure and build `dawn`:

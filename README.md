@@ -8,16 +8,13 @@ Supported architectures:
 |--------	|-----------------------	|----------------	|
 | x64    	| Mac OSX               	|                	|
 | x64    	| Linux (Ubuntu Bionic) 	|                	|
-| armv7  	| iOS                   	| Built Manually 	|
-| armv7s 	| iOS                   	| Built Manually 	|
 | arm64  	| iOS                   	| Built Manually 	|
 | arm64e 	| iOS                   	| Built Manually 	|
 | x86_64 	| iOS                   	| Built Manually 	|
-| i386   	| iOS                   	| Built Manually 	|
 
 The revision of built libraries can be found in the build script, [./build.sh](./build.sh)
 
-**NOTE:** iOS libraries are currently being built manually, as `vcpkg` support is in early stages, and majority of the libraries do not have first-class support for iOS and its architectures. For more details on how specific libraries were built for iOS, see [iOS-BUILD.md](/docs/iOS-BUILD.md).
+**NOTE:** iOS libraries are currently being built manually, as `vcpkg` support is in early stages, and majority of the libraries do not have first-class support for iOS and its architectures. For more details on how specific libraries were built for iOS, see [iOS-BUILD.md](/docs/iOS-BUILD.md). As deck.gl-native supports iOS12+, the dependencies are only built for architectures that can run on those versions.
 
 ## Build instructions
 
